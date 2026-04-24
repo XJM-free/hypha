@@ -7,6 +7,7 @@
 # to surface a block warning.
 
 set -u
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 if [ "${HYPHA_IN_HOOK:-0}" = "1" ]; then exit 0; fi
 export HYPHA_IN_HOOK=1

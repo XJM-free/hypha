@@ -8,6 +8,7 @@
 # never a failed session start.
 
 set -u
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 HYPHA_ROOT="${HYPHA_ROOT:-$HOME/.hypha}"
 INPUT=$(cat)

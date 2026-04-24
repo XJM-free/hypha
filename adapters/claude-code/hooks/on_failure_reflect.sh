@@ -6,6 +6,7 @@
 # async background mode so the user can quit without waiting.
 
 set -u
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # Recursion guard: if this hook is invoked from inside another hook's claude -p,
 # bail out immediately.

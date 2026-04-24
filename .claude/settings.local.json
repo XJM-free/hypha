@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p ~/.claude/hypha-hooks)",
+      "Bash(cp adapters/claude-code/hooks/*.sh ~/.claude/hypha-hooks/)",
+      "Bash(chmod +x ~/.claude/hypha-hooks/*.sh)",
+      "Read(//Users/xiangjie/.claude/**)"
+    ]
+  }
+}
