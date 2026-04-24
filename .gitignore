@@ -29,3 +29,6 @@ Thumbs.db
 # Local settings
 .env
 .env.local
+
+# Claude Code per-project local settings (should never be committed)
+.claude/settings.local.json
