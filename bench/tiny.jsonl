@@ -1,0 +1,5 @@
+{"prompt": "Write a Python function `is_palindrome(s: str) -> bool` that ignores case and non-alphanumeric characters. Return only the function.", "expected_substring": "def is_palindrome"}
+{"prompt": "In one sentence, what is the difference between `git merge --squash` and `git rebase`?", "expected_substring": "commit"}
+{"prompt": "What exit code convention does a POSIX shell program use to signal success?", "expected_substring": "0"}
+{"prompt": "Give me a one-line shell command to find all `.py` files modified in the last 24 hours under the current directory.", "expected_substring": "find"}
+{"prompt": "When would you prefer `asyncio.gather` over `asyncio.wait`? Answer in under 50 words.", "expected_substring": "gather"}

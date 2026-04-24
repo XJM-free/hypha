@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hypha"
+version = "0.1.0"
+description = "The mycelial network beneath your agents — a shared, evolving playbook for Claude Code, Codex, Cursor, Aider, and OpenClaw."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "XJM-free" }]
+keywords = ["ai", "agent", "claude-code", "codex", "cursor", "self-improving", "memory", "skills", "hooks"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+hypha = "core.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/XJM-free/hypha"
+Repository = "https://github.com/XJM-free/hypha"
+Issues = "https://github.com/XJM-free/hypha/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

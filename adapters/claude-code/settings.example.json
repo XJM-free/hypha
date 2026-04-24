@@ -1,0 +1,52 @@
+{
+  "_comment": "Merge these entries into your ~/.claude/settings.json. Do not replace the file wholesale.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hypha-hooks/session_inject.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hypha-hooks/on_failure_reflect.sh",
+            "async": true,
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hypha-hooks/skill_harvester.sh",
+            "async": true,
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hypha-hooks/memory_consolidate.sh",
+            "async": true,
+            "timeout": 600
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hypha-hooks/benchmark_guard.sh",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  }
+}
