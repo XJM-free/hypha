@@ -259,6 +259,33 @@ def cmd_show(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export(args: argparse.Namespace) -> int:
+    from core.algo.export import ExportContext, merge_into, render_agents_md
+
+    if args.format != "agents-md":
+        print(f"unsupported format: {args.format}", file=sys.stderr)
+        return 2
+
+    ctx = ExportContext(
+        hypha_root=args.root,
+        project=args.project or _project_name(),
+        per_topic_limit=args.per_topic_limit,
+    )
+    block = render_agents_md(ctx)
+
+    if args.merge is None:
+        sys.stdout.write(block)
+        return 0
+
+    merged = merge_into(args.merge, block)
+    if args.dry_run:
+        sys.stdout.write(merged)
+        return 0
+    args.merge.write_text(merged, encoding="utf-8")
+    print(f"updated {args.merge}", file=sys.stderr)
+    return 0
+
+
 def cmd_import(args: argparse.Namespace) -> int:
     from core.algo.imports import ImportContext, run
 
@@ -378,6 +405,17 @@ def build_parser() -> argparse.ArgumentParser:
     psh = sub.add_parser("show", help="print an entry and its source file")
     psh.add_argument("id", help="entry id, e.g. corr-00015")
     psh.set_defaults(func=cmd_show)
+
+    pe = sub.add_parser("export", help="render memory for another agent to consume")
+    pe.add_argument("format", choices=["agents-md"],
+                    help="output format (currently only agents-md)")
+    pe.add_argument("--merge", type=Path,
+                    help="merge into the given AGENTS.md file (idempotent)")
+    pe.add_argument("--dry-run", action="store_true",
+                    help="with --merge, print the merged result instead of writing")
+    pe.add_argument("--per-topic-limit", type=int, default=30,
+                    help="cap entries per topic section (default: 30)")
+    pe.set_defaults(func=cmd_export)
 
     return p
 
