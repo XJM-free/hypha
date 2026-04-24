@@ -1,5 +1,13 @@
 # Hypha
 
+> ⚠️ **Archived — the memory-layer framing was wrong.**
+> Anthropic is shipping filesystem-mounted memory natively. The actual open need was *observability*, not *writes*.
+> The pivot became → **[claude-agent-doctor](https://github.com/XJM-free/claude-agent-doctor)** (static analysis of Claude Code sessions, zero tokens) and **[claude-agent-ledger](https://github.com/XJM-free/claude-agent-ledger)** (per-subagent cost attribution).
+>
+> This repository is kept public as the audit trail of how the idea evolved: from "let agents self-improve via shared memory" → "let users see what their agents are actually doing." Full post-mortem at the bottom of this README.
+
+---
+
 > **The mycelial network beneath your agents.**
 > A shared, evolving playbook for Claude Code, Codex, Cursor, Aider, and OpenClaw.
 
@@ -133,3 +141,21 @@ Hypha stands on the shoulders of:
 ## License
 
 MIT © 2026 [XJM-free](https://github.com/XJM-free)
+
+---
+
+## Post-mortem (2026-04-24)
+
+After building v0.1 (85 bible entries imported from real Claude Code sessions, 5 shell hooks, 23 tests, CI green) two independent red-team reviews converged on the same diagnosis:
+
+- **Anthropic's 2026-04 Managed Agents memory launch** covers the write side of the problem. Competing with the platform vendor is a losing proposition.
+- **Cross-agent memory is an author need, not a user need.** ~90% of developers live in a single agent and resist the setup cost of another shared substrate.
+- **Token cost vs invisible value** is a trust asymmetry. Users see the bill; they don't see "disasters avoided."
+
+The real unmet need was the *dual*: understand what the agent already did, before deciding what to change. That led to two small, read-only tools:
+
+- **[claude-agent-ledger](https://github.com/XJM-free/claude-agent-ledger)** — per-subagent cost attribution.
+- **[claude-agent-doctor](https://github.com/XJM-free/claude-agent-doctor)** — 8 documented pathologies in Claude Code sessions, each with mechanism + copy-paste fix.
+
+Leaving this repo public because the mistakes are more instructive than the successes.
+
