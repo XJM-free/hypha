@@ -80,8 +80,14 @@ def run(ctx: ImportContext) -> dict:
     memory_dir = ctx.hypha_root / "memory" / ctx.project
     memory_dir.mkdir(parents=True, exist_ok=True)
 
-    playbook = Playbook(root=memory_dir)
-    stats = {"scanned": len(files), "imported": 0, "skipped_no_frontmatter": 0}
+    playbook = Playbook.load(memory_dir)
+    stats = {
+        "scanned": len(files),
+        "added": 0,
+        "updated": 0,
+        "unchanged": 0,
+        "skipped_no_frontmatter": 0,
+    }
 
     for f in files:
         text = f.read_text(encoding="utf-8")
@@ -91,39 +97,29 @@ def run(ctx: ImportContext) -> dict:
             continue
 
         topic = TYPE_TO_TOPIC.get(fm.get("type", "").lower(), "facts")
+        source = str(f.resolve())
+        new_text = fm.get("description", fm.get("name", f.stem))
         created = date.fromtimestamp(f.stat().st_mtime) if hasattr(date, "fromtimestamp") \
             else datetime.fromtimestamp(f.stat().st_mtime).date()
 
-        entry = MemoryEntry(
-            id=playbook.next_id(topic),
-            topic=topic,
-            text=fm.get("description", fm.get("name", f.stem)),
-            created=created,
-            source=str(f.resolve()),
-            confidence="high",
-        )
-        playbook.entries.append(entry)
-        stats["imported"] += 1
+        existing = playbook.by_source(source)
+        if existing is None:
+            playbook.entries.append(MemoryEntry(
+                id=playbook.next_id(topic),
+                topic=topic,
+                text=new_text,
+                created=created,
+                source=source,
+                confidence="high",
+            ))
+            stats["added"] += 1
+        elif existing.text != new_text:
+            existing.text = new_text
+            existing.created = created
+            stats["updated"] += 1
+        else:
+            stats["unchanged"] += 1
 
-    _write_imported(memory_dir, playbook)
+    from core.algo.consolidate import write_playbook
+    write_playbook(memory_dir, playbook)
     return stats
-
-
-def _write_imported(memory_dir: Path, playbook: Playbook) -> None:
-    from core.schema.memory import TOPICS
-
-    for topic in TOPICS:
-        entries = [e for e in playbook.entries if e.topic == topic]
-        if not entries:
-            continue
-        lines = [f"# {topic}\n"]
-        lines.extend(e.render() for e in entries)
-        (memory_dir / f"{topic}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-    index = ["# Memory index", ""]
-    for topic in TOPICS:
-        f = memory_dir / f"{topic}.md"
-        if f.exists():
-            count = sum(1 for _ in f.read_text(encoding="utf-8").splitlines() if _.startswith("- "))
-            index.append(f"- [{topic}]({topic}.md) — {count} entries")
-    (memory_dir / "MEMORY.md").write_text("\n".join(index) + "\n", encoding="utf-8")

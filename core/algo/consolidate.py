@@ -12,8 +12,8 @@ The LLM response schema is documented in ``core/prompts/consolidate.md``.
 """
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 
 from core.schema import MemoryEntry, Playbook
@@ -107,33 +107,39 @@ def apply(ctx: ConsolidateContext, response: dict) -> dict:
 
 
 def _load_playbook(ctx: ConsolidateContext) -> Playbook:
-    # TODO(parse): read back entries from the topic .md files
-    # For MVP, start from empty and accumulate via ADD.
-    return Playbook(root=ctx.memory_dir, entries=[])
+    return Playbook.load(ctx.memory_dir)
 
 
 def _write_playbook(ctx: ConsolidateContext, playbook: Playbook) -> None:
-    ctx.memory_dir.mkdir(parents=True, exist_ok=True)
+    write_playbook(ctx.memory_dir, playbook)
+
+
+def write_playbook(memory_dir: Path, playbook: Playbook) -> None:
+    """Persist a Playbook to disk as topic .md files plus a MEMORY.md index.
+
+    This is idempotent: calling it with a freshly-loaded Playbook reproduces
+    the same files (bit-for-bit for deterministic entry order).
+    """
+    memory_dir.mkdir(parents=True, exist_ok=True)
     for topic in TOPICS:
         entries = [e for e in playbook.entries if e.topic == topic]
+        f = memory_dir / f"{topic}.md"
         if not entries:
             continue
         lines = [f"# {topic}\n"]
         lines.extend(e.render() for e in entries)
-        (ctx.memory_dir / f"{topic}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        f.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    # Index (MEMORY.md) is safe to fully rewrite — it's an index, not a source of truth.
     index = ["# Memory index", ""]
     for topic in TOPICS:
-        f = ctx.memory_dir / f"{topic}.md"
+        f = memory_dir / f"{topic}.md"
         if f.exists():
-            count = sum(1 for _ in f.read_text(encoding="utf-8").splitlines() if _.startswith("- "))
+            count = sum(1 for line in f.read_text(encoding="utf-8").splitlines() if line.startswith("- "))
             index.append(f"- [{topic}]({topic}.md) — {count} entries")
-    (ctx.memory_dir / "MEMORY.md").write_text("\n".join(index) + "\n", encoding="utf-8")
+    (memory_dir / "MEMORY.md").write_text("\n".join(index) + "\n", encoding="utf-8")
 
 
-def _parse_date(s: str | None) -> "date":
-    from datetime import date, datetime
+def _parse_date(s: str | None) -> date:
     if not s:
         return date.today()
     try:

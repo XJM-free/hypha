@@ -189,6 +189,76 @@ def cmd_inbox(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_stats(args: argparse.Namespace) -> int:
+    from core.algo.queries import project_stats, count_dir
+
+    memory_root = args.root / "memory"
+    stats = project_stats(memory_root)
+    if not stats:
+        print(f"(no projects under {memory_root})")
+        return 0
+
+    width = max((len(s.name) for s in stats), default=20)
+    print(f"{'project'.ljust(width)}  active  superseded  pref/deci/corr/patt/fact")
+    print("-" * (width + 54))
+    for s in stats:
+        buckets = "/".join(str(s.entries_by_topic.get(t, 0)) for t in
+                          ("preferences", "decisions", "corrections", "patterns", "facts"))
+        print(f"{s.name.ljust(width)}  {s.total_active:>6}  {s.total_superseded:>10}  {buckets}")
+
+    print()
+    print(f"skills inbox:    {count_dir(args.root / 'skills' / '.inbox', '*')} awaiting review")
+    print(f"skills active:   {sum(1 for p in (args.root / 'skills').glob('*') if p.is_dir() and not p.name.startswith('.'))}")
+    print(f"skills rejected: {count_dir(args.root / 'skills' / '.rejected', '*')}")
+    reflections = 0
+    ref_root = args.root / "reflections"
+    if ref_root.exists():
+        reflections = sum(1 for _ in ref_root.rglob("*.jsonl"))
+    print(f"reflections:     {reflections} total entries")
+    return 0
+
+
+def cmd_search(args: argparse.Namespace) -> int:
+    from core.algo.queries import search
+
+    hits = search(args.root / "memory", args.query, limit=args.limit)
+    if not hits:
+        print(f"(no matches for: {args.query})")
+        return 0
+    for h in hits:
+        supersede_mark = " [superseded]" if h.entry.superseded_by else ""
+        print(f"[{h.score}] {h.project}/{h.entry.topic}/{h.entry.id}{supersede_mark}")
+        print(f"       {h.entry.text}")
+        if h.entry.source:
+            print(f"       source: {h.entry.source}")
+    return 0
+
+
+def cmd_show(args: argparse.Namespace) -> int:
+    from core.algo.queries import find_entry
+
+    found = find_entry(args.root / "memory", args.id)
+    if found is None:
+        print(f"no entry with id: {args.id}", file=sys.stderr)
+        return 1
+    project, entry = found
+    print(f"# {project}/{entry.topic}/{entry.id}")
+    print(f"created: {entry.created.isoformat()}")
+    print(f"counts:  helpful={entry.helpful} harmful={entry.harmful}")
+    if entry.superseded_by:
+        print(f"superseded_by: {entry.superseded_by}")
+    print(f"text:    {entry.text}")
+    if entry.source:
+        print(f"source:  {entry.source}")
+        src_path = Path(entry.source)
+        if src_path.exists() and src_path.is_file():
+            print("\n--- source contents ---")
+            print(src_path.read_text(encoding="utf-8"))
+        else:
+            print("\n(source file not readable)")
+    return 0
+
+
 def cmd_import(args: argparse.Namespace) -> int:
     from core.algo.imports import ImportContext, run
 
@@ -296,6 +366,18 @@ def build_parser() -> argparse.ArgumentParser:
                     help="source format to import from")
     pm.add_argument("path", type=Path, help="path to the source memory directory")
     pm.set_defaults(func=cmd_import)
+
+    ps = sub.add_parser("stats", help="summarize memory, skills, and reflections")
+    ps.set_defaults(func=cmd_stats)
+
+    pse = sub.add_parser("search", help="grep memory entries across all projects")
+    pse.add_argument("query", help="search terms (space-separated)")
+    pse.add_argument("--limit", type=int, default=20)
+    pse.set_defaults(func=cmd_search)
+
+    psh = sub.add_parser("show", help="print an entry and its source file")
+    psh.add_argument("id", help="entry id, e.g. corr-00015")
+    psh.set_defaults(func=cmd_show)
 
     return p
 
