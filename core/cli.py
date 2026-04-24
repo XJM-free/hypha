@@ -189,6 +189,19 @@ def cmd_inbox(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import(args: argparse.Namespace) -> int:
+    from core.algo.imports import ImportContext, run
+
+    ctx = ImportContext(
+        hypha_root=args.root,
+        project=args.project or _project_name(),
+        source_dir=args.path,
+    )
+    stats = run(ctx)
+    print(json.dumps(stats, indent=2))
+    return 0
+
+
 def _read_trajectory(path: Path | None) -> list[dict]:
     if not path:
         return []
@@ -277,6 +290,12 @@ def build_parser() -> argparse.ArgumentParser:
     pi.add_argument("action", nargs="?", default="list", choices=["list", "approve", "reject"])
     pi.add_argument("name", nargs="?")
     pi.set_defaults(func=cmd_inbox)
+
+    pm = sub.add_parser("import", help="import memory from an existing agent directory")
+    pm.add_argument("source", choices=["claude-code-memory"],
+                    help="source format to import from")
+    pm.add_argument("path", type=Path, help="path to the source memory directory")
+    pm.set_defaults(func=cmd_import)
 
     return p
 
