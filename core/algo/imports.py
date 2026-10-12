@@ -12,11 +12,10 @@ full document on demand.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from core.schema.memory import MemoryEntry, Playbook
-
 
 # Claude Code's memory frontmatter uses a ``type`` field; we map each value to
 # one of Hypha's five topics. Unknown types land in ``facts``.
@@ -99,8 +98,7 @@ def run(ctx: ImportContext) -> dict:
         topic = TYPE_TO_TOPIC.get(fm.get("type", "").lower(), "facts")
         source = str(f.resolve())
         new_text = fm.get("description", fm.get("name", f.stem))
-        created = date.fromtimestamp(f.stat().st_mtime) if hasattr(date, "fromtimestamp") \
-            else datetime.fromtimestamp(f.stat().st_mtime).date()
+        created = datetime.fromtimestamp(f.stat().st_mtime, timezone.utc).astimezone().date()
 
         existing = playbook.by_source(source)
         if existing is None:

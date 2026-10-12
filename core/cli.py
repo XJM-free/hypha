@@ -24,7 +24,6 @@ import os
 import sys
 from pathlib import Path
 
-
 DEFAULT_HYPHA_ROOT = Path(os.environ.get("HYPHA_ROOT", Path.home() / ".hypha"))
 
 
@@ -44,7 +43,7 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 
 def cmd_consolidate(args: argparse.Namespace) -> int:
-    from core.algo.consolidate import ConsolidateContext, prepare, apply
+    from core.algo.consolidate import ConsolidateContext, apply, prepare
 
     ctx = ConsolidateContext(
         hypha_root=args.root,
@@ -74,7 +73,7 @@ def cmd_consolidate(args: argparse.Namespace) -> int:
 
 
 def cmd_reflect(args: argparse.Namespace) -> int:
-    from core.algo.reflect import ReflectContext, prepare, apply
+    from core.algo.reflect import ReflectContext, apply, prepare
 
     trajectory = _read_trajectory(args.trajectory)
     ctx = ReflectContext(
@@ -104,7 +103,7 @@ def cmd_reflect(args: argparse.Namespace) -> int:
 
 
 def cmd_harvest(args: argparse.Namespace) -> int:
-    from core.algo.harvest import HarvestContext, prepare, apply
+    from core.algo.harvest import HarvestContext, apply, prepare
 
     trajectory = _read_trajectory(args.trajectory)
     ctx = HarvestContext(
@@ -162,7 +161,7 @@ def cmd_guard(args: argparse.Namespace) -> int:
 
 
 def cmd_inbox(args: argparse.Namespace) -> int:
-    from core.algo.harvest import list_inbox, approve, reject
+    from core.algo.harvest import approve, list_inbox, reject
 
     match args.action:
         case "approve":
@@ -190,7 +189,7 @@ def cmd_inbox(args: argparse.Namespace) -> int:
 
 
 def cmd_stats(args: argparse.Namespace) -> int:
-    from core.algo.queries import project_stats, count_dir
+    from core.algo.queries import count_dir, project_stats
 
     memory_root = args.root / "memory"
     stats = project_stats(memory_root)
@@ -336,6 +335,7 @@ def _invoke_llm_text(cmd: str, prompt: str) -> str:
         capture_output=True,
         text=True,
         timeout=600,
+        check=False,
     )
     if result.returncode != 0:
         raise RuntimeError(f"LLM invocation failed ({result.returncode}): {result.stderr}")

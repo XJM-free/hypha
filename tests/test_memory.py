@@ -6,13 +6,13 @@ from core.schema import MemoryEntry, Playbook
 
 
 def _entry(**kw) -> MemoryEntry:
-    defaults = dict(
-        id="pref-00001",
-        topic="preferences",
-        text="always use tabs",
-        created=date(2026, 4, 24),
-        source="session-abc",
-    )
+    defaults = {
+        "id": "pref-00001",
+        "topic": "preferences",
+        "text": "always use tabs",
+        "created": date(2026, 4, 24),
+        "source": "session-abc",
+    }
     defaults.update(kw)
     return MemoryEntry(**defaults)
 

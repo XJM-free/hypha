@@ -15,7 +15,6 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-
 DEFAULT_NOISE_LEEWAY = 0.1
 
 
@@ -64,7 +63,7 @@ def evaluate(ctx: GuardContext, run_one: callable) -> GuardResult:
     for case in cases:
         try:
             out = run_one(case["prompt"])
-        except Exception:
+        except Exception:  # noqa: BLE001 - Adapter failures intentionally count as failed canaries.
             out = ""
         if case["expected_substring"] in out:
             passed += 1

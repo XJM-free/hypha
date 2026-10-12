@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -24,13 +24,13 @@ class Reflection:
 
     def __post_init__(self) -> None:
         if not self.timestamp:
-            self.timestamp = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+            self.timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
     def to_jsonl(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)
 
     @classmethod
-    def from_json(cls, data: dict) -> "Reflection":
+    def from_json(cls, data: dict) -> Reflection:
         return cls(
             first_bad_step_index=int(data["first_bad_step_index"]),
             root_cause=data["root_cause"],

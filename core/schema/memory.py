@@ -15,7 +15,6 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
-
 TOPICS = ("preferences", "decisions", "corrections", "patterns", "facts")
 
 # Matches a rendered MemoryEntry:
@@ -81,7 +80,7 @@ class Playbook:
         return f"{prefix}-{n:05d}"
 
     @classmethod
-    def load(cls, root: Path) -> "Playbook":
+    def load(cls, root: Path) -> Playbook:
         """Parse topic .md files under ``root`` back into a Playbook.
 
         Format is the output of :meth:`MemoryEntry.render`. Lines that don't
