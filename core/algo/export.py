@@ -13,8 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from core.schema.memory import Playbook, TOPICS
-
+from core.schema.memory import TOPICS, Playbook
 
 SENTINEL_BEGIN = "<!-- HYPHA:BEGIN - do not edit by hand, run `hypha export agents-md --merge` -->"
 SENTINEL_END = "<!-- HYPHA:END -->"
@@ -44,8 +43,10 @@ def render_agents_md(ctx: ExportContext) -> str:
         "",
         "## Context from Hypha",
         "",
-        "Prior sessions learned the following about this project. "
-        "Treat these as project conventions.",
+        (
+            "Prior sessions learned the following about this project. "
+            "Treat these as project conventions."
+        ),
         "",
     ]
     for topic in TOPICS:

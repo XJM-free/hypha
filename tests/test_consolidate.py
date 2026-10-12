@@ -56,7 +56,7 @@ def test_apply_supersede_marks_without_deletion(tmp_path: Path):
     }]})
 
     pb = Playbook.load(memory)
-    superseded = [e for e in pb.entries if e.id == "corr-00001"][0]
+    superseded = next(e for e in pb.entries if e.id == "corr-00001")
     assert superseded.superseded_by == "corr-00010"
     # The old entry is still loadable — nothing was physically deleted.
     assert superseded.text == "lesson 1"

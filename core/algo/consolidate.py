@@ -13,12 +13,11 @@ The LLM response schema is documented in ``core/prompts/consolidate.md``.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from core.schema import MemoryEntry, Playbook
 from core.schema.memory import TOPICS
-
 
 MIN_HOURS_BETWEEN_RUNS = 24
 MIN_NEW_SESSIONS = 5
@@ -141,8 +140,8 @@ def write_playbook(memory_dir: Path, playbook: Playbook) -> None:
 
 def _parse_date(s: str | None) -> date:
     if not s:
-        return date.today()
+        return datetime.now(timezone.utc).astimezone().date()
     try:
         return datetime.fromisoformat(s).date()
     except ValueError:
-        return date.today()
+        return datetime.now(timezone.utc).astimezone().date()
